@@ -62,6 +62,15 @@
       <string>Rubik-Medium.ttf</string>
       <string>Rubik-MediumItalic.ttf</string>
       <string>Rubik-Regular.ttf</string>
+      <string>Entypo.ttf</string>
+      <string>EvilIcons.ttf</string>
+      <string>FontAwesome.ttf</string>
+      <string>Foundation.ttf</string>
+      <string>Ionicons.ttf</string>
+      <string>MaterialIcons.ttf</string>
+      <string>Octicons.ttf</string>
+      <string>SimpleLineIcons.ttf</string>
+      <string>Zocial.ttf</string>
     </array>
   </dict>
 </plist>

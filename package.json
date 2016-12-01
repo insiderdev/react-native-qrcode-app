@@ -16,6 +16,7 @@
     "react-native-navbar": "^1.5.4",
     "react-native-share": "^1.0.17",
     "react-native-simple-toast": "0.0.5",
+    "react-native-vector-icons": "^3.0.0",
     "valid-url": "^1.0.9"
   },
   "jest": {

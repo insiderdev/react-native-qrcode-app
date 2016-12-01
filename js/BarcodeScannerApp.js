@@ -1,4 +1,11 @@
 import React from 'react';
+import Camera from 'react-native-camera';
+import Toast from 'react-native-simple-toast';
+import Share from 'react-native-share';
+import validUrl from 'valid-url';
+import NavigationBar from 'react-native-navbar';
+import ViewFinder from './ViewFinder';
+import FAIcon from 'react-native-vector-icons/FontAwesome';
 
 import {
   TouchableOpacity,
@@ -10,15 +17,12 @@ import {
   Text,
   Linking,
   AsyncStorage,
-  StatusBar
+  StatusBar,
+  Clipboard,
+  UIManager,
+  LayoutAnimation,
+  BackAndroid
 } from 'react-native';
-
-import Camera from 'react-native-camera';
-import Clipboard from 'react-native-clipboard';
-import Toast from 'react-native-simple-toast';
-import Share from 'react-native-share';
-import validUrl from 'valid-url';
-import NavigationBar from 'react-native-navbar';
 
 import {
   Card,
@@ -43,19 +47,44 @@ class BarcodeScannerApp extends React.Component {
       flashlightEnabled: false,
       resultModalVisible: false,
       parsingResult: null,
-      historyModalVisible: true,
-      history: ['Oneee','Twoooo','Threee']
+      historyModalVisible: false,
+      history: []
     };
 
+    BackAndroid.addEventListener('hardwareBackPress', () => this.pop(this.state));
+
     this.loadHistory();
+  }
+
+  pop(state) {
+    if (state.historyModalVisible) {
+      this.toggleHistoryModal();
+    } else if (state.resultModalVisible) {
+      this.closeModal();
+    } else {
+      BackAndroid.exitApp()
+    }
+    return true;
+  }
+
+  componentWillMount() {
+
   }
 
   async loadHistory() {
     try {
       const value = await AsyncStorage.getItem('history');
       if (value !== null){
-        // this.state.history = JSON.parse(value);
+        this.state.history = JSON.parse(value);
       }
+    } catch (error) {
+      alert(error);
+    }
+  }
+
+  async saveToHistory() {
+    try {
+      await AsyncStorage.setItem('history', JSON.stringify(this.state.history));
     } catch (error) {
       alert(error);
     }
@@ -75,8 +104,18 @@ class BarcodeScannerApp extends React.Component {
   }
 
   barcodeReceived(e) {
-    console.log('Barcode: ' + e.data);
-    console.log('Type: ' + e.type);
+    if (this.state.parsingResult) return;
+
+    this.setState({
+      parsingResult: e.data,
+      resultModalVisible: true,
+      history: [...this.state.history, {
+        type: e.type,
+        data: e.data
+      }]
+    });
+
+    this.saveToHistory();
   }
 
   async openUrl(url) {
@@ -91,92 +130,125 @@ class BarcodeScannerApp extends React.Component {
 
   _renderNavigator() {
     const rightButtonConfig = (
-      <Button onPress={() => {this.toggleHistoryModal()}} style={{marginTop: 5, backgroundColor: '#F8F8F8', borderWidth: 0}}>
+      <Button
+        onPress={() => {this.toggleHistoryModal()}}
+        style={styles.navigationBarButton}
+      >
         <Icon name="close" />
       </Button>
     );
 
-    const titleConfig = {
-      title: 'Your history'
-    };
-
     return (
-      <View style={{marginBottom: 0, backgroundColor: '#F8F8F8'}}>
+      <View style={styles.navigationBarContainer}>
         <NavigationBar
-          style={{backgroundColor: '#F8F8F8'}}
-          title={titleConfig}
+          style={styles.navigationBar}
+          title={{title: 'History'}}
           leftButton={rightButtonConfig} />
       </View>
     );
   }
 
   renderRow(data) {
+    let iconName = 'dot-circle-o';
+    if (data.type === 'CODE_128') {
+      iconName = 'barcode';
+    } else if (data.type === 'QR_CODE') {
+      if (validUrl.isUri(data.data)) {
+        iconName = 'globe';
+      } else {
+        iconName = 'qrcode';
+      }
+    }
+
     return (
-      <Row styleName="small" style={{flex: 1, alignSelf: 'stretch', backgroundColor: 'white', marginTop: 3, marginBottom: 3}}>
-        <Icon name="web" />
-        <Text style={{flex: 1}}>{data}</Text>
-        <Button styleName="right-icon"><Icon name="add-to-cart" /></Button>
-        <Button styleName="right-icon"><Icon name="add-to-cart" /></Button>
+      <Row styleName="small" style={styles.historyRowItemStyle}>
+        <FAIcon name={iconName}  size={20} style={{marginRight: 15}}/>
+
+        <Text style={{flex: 1}}>{data.data}</Text>
+
+        <Button
+          onPress={() => {
+            Clipboard.setString(data.data);
+            Toast.show('Copied to clipboard');
+          }}
+          styleName="right-icon"
+        >
+          <FAIcon name="clone" size={25} color="#000" />
+        </Button>
+
+        <Button
+          onPress={() => {
+            if (validUrl.isUri(data.data)) {
+              this.openUrl(data.data);
+            } else {
+              Share.open({
+                message: data.data
+              });
+            }
+          }}
+          styleName="right-icon"
+          style={{marginLeft: 20}}
+        >
+          <FAIcon name={validUrl.isUri(data.data) ? 'external-link' : 'share'} size={25} color="#000" />
+        </Button>
       </Row>
     )
   }
 
-  render() {
-
+  _renderResultModal() {
     return (
-      <View style={{flex: 1}}>
-        <StatusBar
-          backgroundColor="transparent"
-        />
-
-        <Modal
-          animationType={"slide"}
-          transparent={true}
-          visible={this.state.resultModalVisible}
-        >
-          <View style={styles.modalContainer}>
-            <Card style={styles.modalCardContainer}>
-              <View styleName="content" style={{alignSelf: 'stretch'}}>
-                <View style={{alignItems: 'flex-end'}}>
-                  <TouchableOpacity
-                    onPress={() => {
+      <Modal
+        animationType={"slide"}
+        transparent={true}
+        visible={this.state.resultModalVisible}
+        onRequestClose={() => {
+          this.closeModal();
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <Card style={styles.modalCardContainer}>
+            <View styleName="content" style={{alignSelf: 'stretch'}}>
+              <View style={{alignItems: 'flex-end'}}>
+                <TouchableOpacity
+                  onPress={() => {
                       this.closeModal();
                     }}
-                  >
-                    <Icon name="close" />
-                  </TouchableOpacity>
-                </View>
+                >
+                  <Icon name="close" />
+                </TouchableOpacity>
+              </View>
 
-                <Subtitle>{this.state.parsingResult}</Subtitle>
+              <Subtitle>{this.state.parsingResult}</Subtitle>
 
-                <View style={styles.modalCardContent} />
-                <View style={{flexDirection: 'row'}}>
-                  { validUrl.isUri(this.state.parsingResult) ?
-                    <TouchableOpacity
-                      onPress={() => {
+              <View style={styles.modalCardContent} />
+              <View style={{flexDirection: 'row'}}>
+                { validUrl.isUri(this.state.parsingResult) ?
+                  <TouchableOpacity
+                    onPress={() => {
                         this.openUrl(this.state.parsingResult);
                       }}
-                      style={styles.actionButton}
-                    >
-                        <View>
-                          <Icon name="ic_exit_to_app"/>
-                          <Caption>Open</Caption>
-                        </View>
-                    </TouchableOpacity> : null
-                  }
-                  <TouchableOpacity
                     style={styles.actionButton}
-                    onPress={() => {
-                      Clipboard.set(this.state.parsingResult);
+                  >
+                    <View>
+                      <Icon name="ic_exit_to_app"/>
+                      <Caption>Open</Caption>
+                    </View>
+                  </TouchableOpacity> : null
+                }
+
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => {
+                      Clipboard.setString(this.state.parsingResult.toString());
                       Toast.show('Copied to clipboard!');
                       this.closeModal();
                     }}
-                  >
-                    <Icon name="activity" />
-                    <Caption>Copy</Caption>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
+                >
+                  <Icon name="activity" />
+                  <Caption>Copy</Caption>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
                       Share.open(validUrl.isUri(this.state.parsingResult) ? {
                         url: this.state.parsingResult
                       } : {
@@ -184,40 +256,57 @@ class BarcodeScannerApp extends React.Component {
                       });
                       this.closeModal();
                     }}
-                    style={styles.actionButton}
-                  >
-                    <Icon name="share-android" />
-                    <Caption>Share</Caption>
-                  </TouchableOpacity>
-                </View>
+                  style={styles.actionButton}
+                >
+                  <Icon name="share-android" />
+                  <Caption>Share</Caption>
+                </TouchableOpacity>
               </View>
-            </Card>
-          </View>
-        </Modal>
+            </View>
+          </Card>
+        </View>
+      </Modal>
+    )
+  }
 
-        <Modal
-          animationType={"slide"}
-          transparent={true}
-          visible={this.state.historyModalVisible}
-        >
-          <View style={{flex: 1, backgroundColor: '#F8F8F8', justifyContent: 'flex-start', top: 0}}>
-            {this._renderNavigator()}
+  _renderHistoryModal() {
+    return (
+      <Modal
+        animationType={"slide"}
+        transparent={true}
+        visible={this.state.historyModalVisible}
+        onRequestClose={() => {
+          this.toggleHistoryModal();
+        }}
+      >
+        <View style={styles.historyModalContainer}>
+          {this._renderNavigator()}
 
-            <ListView
-              style={{flex: 1, alignSelf: 'stretch', background: 'black'}}
-              data={this.state.history}
-              renderRow={this.renderRow}
-            />
+          <ListView
+            data={this.state.history}
+            renderRow={this.renderRow.bind(this)}
+          />
+        </View>
+      </Modal>
+    )
+  }
 
-          </View>
-        </Modal>
+  render() {
+    return (
+      <View style={{flex: 1}}>
+        <StatusBar
+          backgroundColor="#e3e3e3"
+        />
+        {this._renderResultModal()}
+        {this._renderHistoryModal()}
 
-        <View
-          onBarCodeRead={this.barcodeReceived}
+        <Camera
+          onBarCodeRead={this.barcodeReceived.bind(this)}
           style={{ flex: 1, backgroundColor: '#e3e3e3' }}
           torchMode={1}
           flashMode={Camera.constants.FlashMode.on}
         >
+          <ViewFinder/>
           <View style={styles.buttonsContainer}>
             <TouchableOpacity style={styles.button}>
               <Image
@@ -231,14 +320,17 @@ class BarcodeScannerApp extends React.Component {
                 source={require('./img/flash_light.png')}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => this.toggleHistoryModal()} style={styles.button}>
+            <TouchableOpacity
+              onPress={() => this.toggleHistoryModal()}
+              style={styles.button}
+            >
               <Image
                 style={styles.buttonImage}
                 source={require('./img/clock.png')}
               />
             </TouchableOpacity>
           </View>
-        </View>
+        </Camera>
       </View>
     );
   }
@@ -297,6 +389,31 @@ const styles = {
     borderBottomWidth: 1,
     borderBottomColor: '#e3e3e3',
     alignSelf: 'stretch'
+  },
+  navigationBarContainer: {
+    marginBottom: 0,
+    backgroundColor: '#F8F8F8'
+  },
+  navigationBar: {
+    backgroundColor: '#F8F8F8'
+  },
+  navigationBarButton: {
+    marginTop: 5,
+    backgroundColor: '#F8F8F8',
+    borderWidth: 0
+  },
+  historyModalContainer: {
+    flex: 1,
+    backgroundColor: '#F8F8F8',
+    justifyContent: 'flex-start',
+    top: 0
+  },
+  historyRowItemStyle: {
+    flex: 1,
+    alignSelf: 'stretch',
+    backgroundColor: 'white',
+    marginTop: 3,
+    marginBottom: 3
   }
 };
 

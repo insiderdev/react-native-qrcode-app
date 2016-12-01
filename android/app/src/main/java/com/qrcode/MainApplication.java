@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.facebook.react.ReactApplication;
+import com.oblador.vectoricons.VectorIconsPackage;
 import cl.json.RNSharePackage;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.eguma.barcodescanner.BarcodeScannerPackage;
@@ -27,6 +28,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new VectorIconsPackage(),
             new RNSharePackage(),
             new RCTCameraPackage(),
             new BarcodeScannerPackage()
