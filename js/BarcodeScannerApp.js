@@ -6,6 +6,7 @@ import validUrl from 'valid-url';
 import NavigationBar from 'react-native-navbar';
 import ViewFinder from './ViewFinder';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
+import FirebaseAnalytics from './FirebaseAnalytics';
 
 import {
   TouchableOpacity,
@@ -21,7 +22,8 @@ import {
   Clipboard,
   UIManager,
   LayoutAnimation,
-  BackAndroid
+  BackAndroid,
+  Platform
 } from 'react-native';
 
 import {
@@ -54,6 +56,12 @@ class BarcodeScannerApp extends React.Component {
     BackAndroid.addEventListener('hardwareBackPress', () => this.pop(this.state));
 
     this.loadHistory();
+  }
+
+  logEvent(eventName) {
+    if (Platform.OS === 'android') {
+      FirebaseAnalytics.logEvent(eventName, {});
+    }
   }
 
   pop(state) {
@@ -98,6 +106,10 @@ class BarcodeScannerApp extends React.Component {
   }
 
   toggleHistoryModal() {
+    if (!this.state.historyModalVisible) {
+      this.logEvent('open_history');
+    }
+
     this.setState({
       historyModalVisible: !this.state.historyModalVisible
     });
@@ -119,6 +131,8 @@ class BarcodeScannerApp extends React.Component {
   }
 
   async openUrl(url) {
+    this.logEvent('open_url');
+
     Linking.canOpenURL(url).then(supported => {
       if (!supported) {
         alert('Can\'t handle url: ' + url);
@@ -170,6 +184,7 @@ class BarcodeScannerApp extends React.Component {
           onPress={() => {
             Clipboard.setString(data.data);
             Toast.show('Copied to clipboard');
+            this.logEvent('copy_to_clipboard');
           }}
           styleName="right-icon"
         >
@@ -184,6 +199,7 @@ class BarcodeScannerApp extends React.Component {
               Share.open({
                 message: data.data
               });
+              this.logEvent('share');
             }
           }}
           styleName="right-icon"
@@ -242,6 +258,7 @@ class BarcodeScannerApp extends React.Component {
                       Clipboard.setString(this.state.parsingResult.toString());
                       Toast.show('Copied to clipboard!');
                       this.closeModal();
+                      this.logEvent('copy_to_clipboard');
                     }}
                 >
                   <Icon name="activity" />
@@ -255,6 +272,7 @@ class BarcodeScannerApp extends React.Component {
                         message: this.state.parsingResult
                       });
                       this.closeModal();
+                      this.logEvent('share');
                     }}
                   style={styles.actionButton}
                 >
@@ -308,13 +326,23 @@ class BarcodeScannerApp extends React.Component {
         >
           <ViewFinder/>
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity
+              onPress={() => {
+                this.logEvent('click_plus');
+              }}
+              style={styles.button}
+            >
               <Image
                 style={styles.buttonImage}
                 source={require('./img/plus.png')}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, this.state.flashlightEnabled && styles.buttonActive]}>
+            <TouchableOpacity
+              onPress={() => {
+                this.logEvent('toggle_flash');
+              }}
+              style={[styles.button, this.state.flashlightEnabled && styles.buttonActive]}
+            >
               <Image
                 style={styles.buttonImage}
                 source={require('./img/flash_light.png')}
