@@ -28,7 +28,8 @@ import {
   UIManager,
   LayoutAnimation,
   BackAndroid,
-  Platform
+  Platform,
+  ListView
 } from 'react-native';
 
 import {
@@ -38,10 +39,11 @@ import {
   Icon,
   Button,
   Text as SHText,
-  Row,ListView,
+  Row,
   TextInput
 } from '@shoutem/ui';
 
+const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
 const primaryColor = '#fc6821';
 
@@ -75,7 +77,7 @@ class BarcodeScannerApp extends React.Component {
       parsingResult: null,
       historyModalVisible: false,
       generateModalVisible: false,
-      history: ['One'],
+      history: ds.cloneWithRows([]),
       textToGenerate: '',
       torchMode: Camera.constants.TorchMode.off
     };
@@ -100,10 +102,6 @@ class BarcodeScannerApp extends React.Component {
       BackAndroid.exitApp()
     }
     return true;
-  }
-
-  componentWillMount() {
-
   }
 
   async loadHistory() {
@@ -225,7 +223,7 @@ class BarcodeScannerApp extends React.Component {
     }
 
     return (
-      <Row styleName="small" style={styles.historyRowItemStyle}>
+      <View style={{flex: 1, padding: 20, flexDirection: 'row', ...styles.historyRowItemStyle}}>
         <FAIcon name={iconName}  size={20} style={{marginRight: 15}}/>
 
         <Text style={{flex: 1}}>{data.data}</Text>
@@ -261,8 +259,8 @@ class BarcodeScannerApp extends React.Component {
             color="#000"
           />
         </Button>
-      </Row>
-    )
+      </View>
+    );
   }
 
   _renderResultModal() {
@@ -342,6 +340,9 @@ class BarcodeScannerApp extends React.Component {
   }
 
   _renderHistoryModal() {
+
+    const toRender = ds.cloneWithRows(this.state.history);
+
     return (
       <Modal
         animationType={"slide"}
@@ -355,8 +356,9 @@ class BarcodeScannerApp extends React.Component {
           {this._renderNavigator()}
 
           <ListView
-            data={this.state.history}
+            dataSource={toRender}
             renderRow={this.renderRow.bind(this)}
+            initialListSize={1}
           />
         </View>
       </Modal>
