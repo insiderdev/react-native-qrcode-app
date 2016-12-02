@@ -136,6 +136,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-localization')
     compile project(':react-native-code-push')
     compile project(':react-native-vector-icons')
     compile project(':react-native-share')

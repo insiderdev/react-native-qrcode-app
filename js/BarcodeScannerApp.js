@@ -11,6 +11,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FirebaseAnalytics from './FirebaseAnalytics';
 import codePush from "react-native-code-push";
 import QRCode from 'react-native-qrcode';
+import LocalizedStrings from 'react-native-localization';
 
 import {
   TouchableOpacity,
@@ -41,6 +42,26 @@ import {
   TextInput
 } from '@shoutem/ui';
 
+
+const primaryColor = '#fc6821';
+
+const strings = new LocalizedStrings({
+  en: {
+    history: 'History',
+    cantHandleUrl: 'Can\'t handle url: ',
+    errorOccured: 'An error occurred ',
+    copied: 'Copied to clipboard!',
+    textToGenerate: 'Text to generate'
+  },
+  ru: {
+    history: 'История',
+    cantHandleUrl: 'Не могу открыть ссылку: ',
+    errorOccured: 'Произошла ошибка ',
+    copied: 'Скопированно в буфер обмена!',
+    textToGenerate: 'Текст для генерации'
+  }
+});
+
 class BarcodeScannerApp extends React.Component {
   constructor(props) {
     super(props);
@@ -48,15 +69,15 @@ class BarcodeScannerApp extends React.Component {
     console.disableYellowBox = true;
 
     this.state = {
-      torchMode: 1,
       cameraType: 'back',
       flashlightEnabled: false,
       resultModalVisible: false,
       parsingResult: null,
       historyModalVisible: false,
       generateModalVisible: false,
-      history: [],
-      textToGenerate: ''
+      history: ['One'],
+      textToGenerate: '',
+      torchMode: Camera.constants.TorchMode.off
     };
 
     BackAndroid.addEventListener('hardwareBackPress', this.pop.bind(this));
@@ -137,6 +158,13 @@ class BarcodeScannerApp extends React.Component {
     });
   }
 
+  toggleFlash() {
+    this.setState({
+      flashlightEnabled: !this.state.flashlightEnabled,
+      torchMode: this.state.torchMode == Camera.constants.TorchMode.off ? Camera.constants.TorchMode.on : Camera.constants.TorchMode.off
+    });
+  }
+
   barcodeReceived(e) {
     if (this.state.parsingResult) return;
 
@@ -157,11 +185,11 @@ class BarcodeScannerApp extends React.Component {
 
     Linking.canOpenURL(url).then(supported => {
       if (!supported) {
-        alert('Can\'t handle url: ' + url);
+        alert(strings.cantHandleUrl + url);
       } else {
         return Linking.openURL(url);
       }
-    }).catch(err => alert('An error occurred ' + err));
+    }).catch(err => alert(strings.errorOccurred + err));
   }
 
   _renderNavigator() {
@@ -178,7 +206,7 @@ class BarcodeScannerApp extends React.Component {
       <View style={styles.navigationBarContainer}>
         <NavigationBar
           style={styles.navigationBar}
-          title={{title: 'History'}}
+          title={{title: strings.history}}
           leftButton={rightButtonConfig} />
       </View>
     );
@@ -205,7 +233,7 @@ class BarcodeScannerApp extends React.Component {
         <Button
           onPress={() => {
             Clipboard.setString(data.data);
-            Toast.show('Copied to clipboard');
+            Toast.show(strings.copied);
             this.logEvent('copy_to_clipboard');
           }}
           styleName="right-icon"
@@ -227,7 +255,11 @@ class BarcodeScannerApp extends React.Component {
           styleName="right-icon"
           style={{marginLeft: 20}}
         >
-          <FAIcon name={validUrl.isUri(data.data) ? 'external-link' : 'share'} size={25} color="#000" />
+          <FAIcon
+            name={validUrl.isUri(data.data) ? 'external-link' : 'share'}
+            size={25}
+            color="#000"
+          />
         </Button>
       </Row>
     )
@@ -278,7 +310,7 @@ class BarcodeScannerApp extends React.Component {
                   style={styles.actionButton}
                   onPress={() => {
                       Clipboard.setString(this.state.parsingResult.toString());
-                      Toast.show('Copied to clipboard!');
+                      Toast.show(string.copied);
                       this.closeModal();
                       this.logEvent('copy_to_clipboard');
                     }}
@@ -355,7 +387,7 @@ class BarcodeScannerApp extends React.Component {
               </View>
 
               <TextInput
-                placeholder={'Text to generate'}
+                placeholder={strings.textToGenerate}
                 onChangeText={newText => {
                   this.setState({
                     textToGenerate: newText
@@ -367,7 +399,7 @@ class BarcodeScannerApp extends React.Component {
                 <QRCode
                   value={this.state.textToGenerate}
                   size={Dimensions.get('window').width - 100}
-                  bgColor="purple"
+                  bgColor={primaryColor}
                   fgColor="white"
                   />
               </View>
@@ -382,18 +414,17 @@ class BarcodeScannerApp extends React.Component {
     return (
       <View style={{flex: 1}}>
         <StatusBar
-          backgroundColor="#e3e3e3"
+          backgroundColor={primaryColor}
         />
 
         {this._renderResultModal()}
         {this._renderHistoryModal()}
         {this._renderGenerateModal()}
 
-        <View
+        <Camera
           onBarCodeRead={this.barcodeReceived.bind(this)}
           style={{ flex: 1, backgroundColor: '#e3e3e3' }}
-          torchMode={1}
-          flashMode={Camera.constants.FlashMode.on}
+          torchMode={this.state.torchMode}
         >
           <ViewFinder/>
           <View style={styles.buttonsContainer}>
@@ -410,7 +441,10 @@ class BarcodeScannerApp extends React.Component {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                this.logEvent('toggle_flash');
+                this.toggleFlash();
+                if (!this.state.flashlightEnabled) {
+                  this.logEvent('toggle_flash');
+                }
               }}
               style={[styles.button, this.state.flashlightEnabled && styles.buttonActive]}
             >
@@ -429,7 +463,7 @@ class BarcodeScannerApp extends React.Component {
               />
             </TouchableOpacity>
           </View>
-        </View>
+        </Camera>
       </View>
     );
   }
@@ -461,7 +495,7 @@ const styles = {
     tintColor: 'white'
   },
   buttonActive: {
-    backgroundColor: 'blue',
+    backgroundColor: primaryColor,
     opacity: 1
   },
   actionButton: {
@@ -490,7 +524,8 @@ const styles = {
     alignSelf: 'stretch'
   },
   navigationBarContainer: {
-    marginBottom: 0,
+    paddingTop: 5,
+    marginBottom: 5,
     backgroundColor: '#F8F8F8'
   },
   navigationBar: {
