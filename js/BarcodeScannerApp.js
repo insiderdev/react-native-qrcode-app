@@ -1,3 +1,5 @@
+'use strict';
+
 import React from 'react';
 import Camera from 'react-native-camera';
 import Toast from 'react-native-simple-toast';
@@ -8,6 +10,7 @@ import ViewFinder from './ViewFinder';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FirebaseAnalytics from './FirebaseAnalytics';
 import codePush from "react-native-code-push";
+import QRCode from 'react-native-qrcode';
 
 import {
   TouchableOpacity,
@@ -34,11 +37,10 @@ import {
   Icon,
   Button,
   Text as SHText,
-  Row,ListView
+  Row,ListView,
+  TextInput
 } from '@shoutem/ui';
 
-
-@codePush
 class BarcodeScannerApp extends React.Component {
   constructor(props) {
     super(props);
@@ -52,10 +54,12 @@ class BarcodeScannerApp extends React.Component {
       resultModalVisible: false,
       parsingResult: null,
       historyModalVisible: false,
-      history: []
+      generateModalVisible: false,
+      history: [],
+      textToGenerate: ''
     };
 
-    BackAndroid.addEventListener('hardwareBackPress', () => this.pop(this.state));
+    BackAndroid.addEventListener('hardwareBackPress', this.pop.bind(this));
 
     this.loadHistory();
   }
@@ -66,10 +70,10 @@ class BarcodeScannerApp extends React.Component {
     }
   }
 
-  pop(state) {
-    if (state.historyModalVisible) {
+  pop() {
+    if (this.state.historyModalVisible) {
       this.toggleHistoryModal();
-    } else if (state.resultModalVisible) {
+    } else if (this.state.resultModalVisible) {
       this.closeModal();
     } else {
       BackAndroid.exitApp()
@@ -114,6 +118,22 @@ class BarcodeScannerApp extends React.Component {
 
     this.setState({
       historyModalVisible: !this.state.historyModalVisible
+    });
+  }
+
+  toggleGenerateModal() {
+    if (!this.state.generateModalVisible) {
+      this.logEvent('open_generate');
+    } else {
+      if (this.state.textToGenerate) {
+        this.setState({
+          textToGenerate: ''
+        });
+      }
+    }
+
+    this.setState({
+      generateModalVisible: !this.state.generateModalVisible
     });
   }
 
@@ -311,16 +331,65 @@ class BarcodeScannerApp extends React.Component {
     )
   }
 
+  _renderGenerateModal() {
+    return (
+      <Modal
+        animationType={"slide"}
+        transparent={true}
+        visible={this.state.generateModalVisible}
+        onRequestClose={() => {
+          this.toggleGenerateModal();
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <Card style={styles.modalCardContainer}>
+            <View styleName="content" style={{alignSelf: 'stretch'}}>
+              <View style={{alignItems: 'flex-end'}}>
+                <TouchableOpacity
+                  onPress={() => {
+                      this.toggleGenerateModal();
+                    }}
+                >
+                  <Icon name="close" />
+                </TouchableOpacity>
+              </View>
+
+              <TextInput
+                placeholder={'Text to generate'}
+                onChangeText={newText => {
+                  this.setState({
+                    textToGenerate: newText
+                  })
+                }}
+              />
+
+              <View style={{padding: 10}}>
+                <QRCode
+                  value={this.state.textToGenerate}
+                  size={Dimensions.get('window').width - 100}
+                  bgColor="purple"
+                  fgColor="white"
+                  />
+              </View>
+            </View>
+          </Card>
+        </View>
+      </Modal>
+    )
+  }
+
   render() {
     return (
       <View style={{flex: 1}}>
         <StatusBar
           backgroundColor="#e3e3e3"
         />
+
         {this._renderResultModal()}
         {this._renderHistoryModal()}
+        {this._renderGenerateModal()}
 
-        <Camera
+        <View
           onBarCodeRead={this.barcodeReceived.bind(this)}
           style={{ flex: 1, backgroundColor: '#e3e3e3' }}
           torchMode={1}
@@ -330,7 +399,7 @@ class BarcodeScannerApp extends React.Component {
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
               onPress={() => {
-                this.logEvent('click_plus');
+                this.toggleGenerateModal();
               }}
               style={styles.button}
             >
@@ -360,7 +429,7 @@ class BarcodeScannerApp extends React.Component {
               />
             </TouchableOpacity>
           </View>
-        </Camera>
+        </View>
       </View>
     );
   }
@@ -447,4 +516,4 @@ const styles = {
   }
 };
 
-export default BarcodeScannerApp;
+export default codePush(BarcodeScannerApp);
