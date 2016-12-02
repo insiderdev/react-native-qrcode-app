@@ -47,6 +47,8 @@
 		115D64A9E0654A66AF99022C /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 56DF62C61EB741659102ABFE /* Octicons.ttf */; };
 		DCB3158F9C8E437C95982792 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3B7D6D24EC1D4DF490F8D8BE /* SimpleLineIcons.ttf */; };
 		9EC250AB94394DE391D5CD5F /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A045E833828442BABE9BB9D1 /* Zocial.ttf */; };
+		1D07BC29528C46DA86DA8850 /* libCodePush.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 07A353E499164E47B1AE64C3 /* libCodePush.a */; };
+		8C509B3E94584F9AB2A0D279 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A4A1C68E98904095B57C0F06 /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -258,6 +260,9 @@
 		56DF62C61EB741659102ABFE /* Octicons.ttf */ = {isa = PBXFileReference; name = "Octicons.ttf"; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		3B7D6D24EC1D4DF490F8D8BE /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; name = "SimpleLineIcons.ttf"; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 		A045E833828442BABE9BB9D1 /* Zocial.ttf */ = {isa = PBXFileReference; name = "Zocial.ttf"; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		95F0FCFFCEB74119BC1FD673 /* CodePush.xcodeproj */ = {isa = PBXFileReference; name = "CodePush.xcodeproj"; path = "../node_modules/react-native-code-push/ios/CodePush.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		07A353E499164E47B1AE64C3 /* libCodePush.a */ = {isa = PBXFileReference; name = "libCodePush.a"; path = "libCodePush.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		A4A1C68E98904095B57C0F06 /* libz.tbd */ = {isa = PBXFileReference; name = "libz.tbd"; path = "usr/lib/libz.tbd"; sourceTree = SDKROOT; fileEncoding = undefined; lastKnownFileType = sourcecode.text-based-dylib-definition; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -288,6 +293,8 @@
 				61BA89A20DBA4F4CB23D4398 /* libLRDRCTSimpleToast.a in Frameworks */,
 				A06C3F056039497D9EE4E041 /* libRNShare.a in Frameworks */,
 				AFAD0437418743DF9E7A16F8 /* libRNVectorIcons.a in Frameworks */,
+				1D07BC29528C46DA86DA8850 /* libCodePush.a in Frameworks */,
+				8C509B3E94584F9AB2A0D279 /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,6 +455,7 @@
 				67C3F4B44DE84F42B5DBDE1D /* LRDRCTSimpleToast.xcodeproj */,
 				93F27AD0643747E8B28A706F /* RNShare.xcodeproj */,
 				B3ABD0ACD2E64C5C8B2EFF85 /* RNVectorIcons.xcodeproj */,
+				95F0FCFFCEB74119BC1FD673 /* CodePush.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -469,6 +477,7 @@
 				00E356EF1AD99517003FC87E /* QRCodeTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				5B78D1FD6BE146BC88A15BD1 /* Resources */,
+				21A7912B3FA54D5681AE729F /* Frameworks */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -513,6 +522,15 @@
 				AC16A0FE1DEDCB1100EB10A3 /* libRNShare.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		21A7912B3FA54D5681AE729F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A4A1C68E98904095B57C0F06 /* libz.tbd */,
+			);
+			name = Frameworks;
+			path = "";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -911,6 +929,7 @@
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QRCode.app/QRCode";
@@ -927,6 +946,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
@@ -953,6 +973,7 @@
 					"$(SRCROOT)/../node_modules/react-native-simple-toast/ios/LRDRCTSimpleToast",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
+					"$(SRCROOT)/../node_modules/react-native-code-push/ios/CodePush/**",
 				);
 				INFOPLIST_FILE = QRCode/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -980,6 +1001,7 @@
 					"$(SRCROOT)/../node_modules/react-native-simple-toast/ios/LRDRCTSimpleToast",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
+					"$(SRCROOT)/../node_modules/react-native-code-push/ios/CodePush/**",
 				);
 				INFOPLIST_FILE = QRCode/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1036,6 +1058,7 @@
 					"$(SRCROOT)/../node_modules/react-native-simple-toast/ios/LRDRCTSimpleToast",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
+					"$(SRCROOT)/../node_modules/react-native-code-push/ios/CodePush/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1081,6 +1104,7 @@
 					"$(SRCROOT)/../node_modules/react-native-simple-toast/ios/LRDRCTSimpleToast",
 					"$(SRCROOT)/../node_modules/react-native-share/ios",
 					"$(SRCROOT)/../node_modules/react-native-vector-icons/RNVectorIconsManager",
+					"$(SRCROOT)/../node_modules/react-native-code-push/ios/CodePush/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;

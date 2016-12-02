@@ -7,6 +7,7 @@ import NavigationBar from 'react-native-navbar';
 import ViewFinder from './ViewFinder';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FirebaseAnalytics from './FirebaseAnalytics';
+import codePush from "react-native-code-push";
 
 import {
   TouchableOpacity,
@@ -37,6 +38,7 @@ import {
 } from '@shoutem/ui';
 
 
+@codePush
 class BarcodeScannerApp extends React.Component {
   constructor(props) {
     super(props);

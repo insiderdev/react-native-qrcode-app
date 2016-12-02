@@ -1,3 +1,4 @@
 <resources>
+    <string moduleConfig="true" name="reactNativeCodePush_androidDeploymentKey">Xmf-BEv6kQMIGd9EE3tdIdT5rX2wVk5-bpfe-</string>
     <string name="app_name">QRCode</string>
 </resources>
