@@ -29,13 +29,15 @@ import {
   LayoutAnimation,
   BackAndroid,
   Platform,
-  ListView
+  ListView,
+  AppState
 } from 'react-native';
 
 import {
   Card,
   Caption,
   Subtitle,
+  Title,
   Icon,
   Button,
   Text as SHText,
@@ -53,14 +55,22 @@ const strings = new LocalizedStrings({
     cantHandleUrl: 'Can\'t handle url: ',
     errorOccured: 'An error occurred ',
     copied: 'Copied to clipboard!',
-    textToGenerate: 'Text to generate'
+    textToGenerate: 'Text to generate',
+    noHistory: 'No history yet :(',
+    open: 'Open',
+    copy: 'Copy',
+    share: 'Share'
   },
   ru: {
     history: 'История',
     cantHandleUrl: 'Не могу открыть ссылку: ',
     errorOccured: 'Произошла ошибка ',
     copied: 'Скопированно в буфер обмена!',
-    textToGenerate: 'Текст для генерации'
+    textToGenerate: 'Текст для генерации',
+    noHistory: 'Пока пусто :(',
+    open: 'Открыть',
+    copy: 'Скопировать',
+    share: 'Поделиться'
   }
 });
 
@@ -79,7 +89,8 @@ class BarcodeScannerApp extends React.Component {
       generateModalVisible: false,
       history: ds.cloneWithRows([]),
       textToGenerate: '',
-      torchMode: Camera.constants.TorchMode.off
+      torchMode: Camera.constants.TorchMode.off,
+      isActiveState: true
     };
 
     BackAndroid.addEventListener('hardwareBackPress', this.pop.bind(this));
@@ -92,6 +103,7 @@ class BarcodeScannerApp extends React.Component {
       FirebaseAnalytics.logEvent(eventName, {});
     }
   }
+  
 
   pop() {
     if (this.state.historyModalVisible) {
@@ -164,7 +176,9 @@ class BarcodeScannerApp extends React.Component {
   }
 
   barcodeReceived(e) {
-    if (this.state.parsingResult) return;
+    if (this.state.parsingResult ||
+        this.state.generateModalVisible ||
+        this.state.historyModalVisible) return;
 
     this.setState({
       parsingResult: e.data,
@@ -299,7 +313,7 @@ class BarcodeScannerApp extends React.Component {
                   >
                     <View>
                       <Icon name="ic_exit_to_app"/>
-                      <Caption>Open</Caption>
+                      <Caption>{strings.open}</Caption>
                     </View>
                   </TouchableOpacity> : null
                 }
@@ -308,13 +322,13 @@ class BarcodeScannerApp extends React.Component {
                   style={styles.actionButton}
                   onPress={() => {
                       Clipboard.setString(this.state.parsingResult.toString());
-                      Toast.show(string.copied);
+                      Toast.show(strings.copied);
                       this.closeModal();
                       this.logEvent('copy_to_clipboard');
                     }}
                 >
                   <Icon name="activity" />
-                  <Caption>Copy</Caption>
+                  <Caption>{strings.copy}</Caption>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
@@ -329,7 +343,7 @@ class BarcodeScannerApp extends React.Component {
                   style={styles.actionButton}
                 >
                   <Icon name="share-android" />
-                  <Caption>Share</Caption>
+                  <Caption>{strings.share}</Caption>
                 </TouchableOpacity>
               </View>
             </View>
@@ -355,11 +369,20 @@ class BarcodeScannerApp extends React.Component {
         <View style={styles.historyModalContainer}>
           {this._renderNavigator()}
 
-          <ListView
-            dataSource={toRender}
-            renderRow={this.renderRow.bind(this)}
-            initialListSize={1}
-          />
+          {this.state.history.length ?
+            (
+              <ListView
+                dataSource={toRender}
+                renderRow={this.renderRow.bind(this)}
+                initialListSize={1}
+              />
+            ) :
+            (
+              <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                <Title>{strings.noHistory}</Title>
+              </View>
+            )
+          }
         </View>
       </Modal>
     )
@@ -413,6 +436,8 @@ class BarcodeScannerApp extends React.Component {
   }
 
   render() {
+    const TopComponent = this.state.isActiveState ? Camera : View;
+
     return (
       <View style={{flex: 1}}>
         <StatusBar
@@ -423,9 +448,9 @@ class BarcodeScannerApp extends React.Component {
         {this._renderHistoryModal()}
         {this._renderGenerateModal()}
 
-        <Camera
+        <TopComponent
           onBarCodeRead={this.barcodeReceived.bind(this)}
-          style={{ flex: 1, backgroundColor: '#e3e3e3' }}
+          style={{ flex: 1, backgroundColor: primaryColor }}
           torchMode={this.state.torchMode}
         >
           <ViewFinder/>
@@ -465,7 +490,7 @@ class BarcodeScannerApp extends React.Component {
               />
             </TouchableOpacity>
           </View>
-        </Camera>
+        </TopComponent>
       </View>
     );
   }
