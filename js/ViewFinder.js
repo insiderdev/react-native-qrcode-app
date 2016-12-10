@@ -1,7 +1,7 @@
 import React, {
-  Component,
   PropTypes,
 } from 'react';
+
 import {
   ActivityIndicator,
   Platform,
@@ -9,7 +9,27 @@ import {
   View,
 } from 'react-native';
 
-class Viewfinder extends Component {
+class Viewfinder extends React.Component {
+  static propTypes = {
+    backgroundColor: PropTypes.string,
+    borderWidth: PropTypes.number,
+    borderLength: PropTypes.number,
+    color: PropTypes.string,
+    height: PropTypes.number,
+    isLoading: PropTypes.bool,
+    width: PropTypes.number,
+  };
+
+  static defaultProps = {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderLength: 30,
+    color: 'white',
+    height: 200,
+    isLoading: false,
+    width: 200,
+  };
+
   constructor(props) {
     super(props);
 
@@ -104,29 +124,9 @@ class Viewfinder extends Component {
       </View>
     );
   }
-};
+}
 
-Viewfinder.propTypes = {
-  backgroundColor: PropTypes.string,
-  borderWidth: PropTypes.number,
-  borderLength: PropTypes.number,
-  color: PropTypes.string,
-  height: PropTypes.number,
-  isLoading: PropTypes.bool,
-  width: PropTypes.number,
-};
-
-Viewfinder.defaultProps = {
-  backgroundColor: 'transparent',
-  borderWidth: 2,
-  borderLength: 30,
-  color: 'white',
-  height: 200,
-  isLoading: false,
-  width: 200,
-};
-
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -162,4 +162,4 @@ var styles = StyleSheet.create({
   },
 });
 
-module.exports = Viewfinder;
+export default Viewfinder;

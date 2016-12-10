@@ -41,7 +41,6 @@ import {
   Icon,
   Button,
   Text as SHText,
-  Row,
   TextInput
 } from '@shoutem/ui';
 
@@ -98,18 +97,25 @@ class BarcodeScannerApp extends React.Component {
     this.loadHistory();
   }
 
+  /**
+   * Log event to Firebase analytics
+   * @param eventName name of the event
+   */
   logEvent(eventName) {
     if (Platform.OS === 'android') {
       FirebaseAnalytics.logEvent(eventName, {});
     }
   }
-  
 
+  /**
+   * Called on BackButton press. Hides modal is any of them currently visible
+   * or exits the app.
+   */
   pop() {
     if (this.state.historyModalVisible) {
       this.toggleHistoryModal();
     } else if (this.state.resultModalVisible) {
-      this.closeModal();
+      this.closeResultsModal();
     } else {
       BackAndroid.exitApp()
     }
@@ -135,7 +141,7 @@ class BarcodeScannerApp extends React.Component {
     }
   }
 
-  closeModal() {
+  closeResultsModal() {
     this.setState({
       resultModalVisible: !this.state.resultModalVisible,
       parsingResult: null
@@ -171,7 +177,8 @@ class BarcodeScannerApp extends React.Component {
   toggleFlash() {
     this.setState({
       flashlightEnabled: !this.state.flashlightEnabled,
-      torchMode: this.state.torchMode == Camera.constants.TorchMode.off ? Camera.constants.TorchMode.on : Camera.constants.TorchMode.off
+      torchMode: this.state.torchMode == Camera.constants.TorchMode.off ?
+                    Camera.constants.TorchMode.on : Camera.constants.TorchMode.off
     });
   }
 
@@ -238,7 +245,11 @@ class BarcodeScannerApp extends React.Component {
 
     return (
       <View style={{flex: 1, padding: 20, flexDirection: 'row', ...styles.historyRowItemStyle}}>
-        <FAIcon name={iconName}  size={20} style={{marginRight: 15}}/>
+        <FAIcon
+          name={iconName}
+          size={20}
+          style={{marginRight: 15}}
+        />
 
         <Text style={{flex: 1}}>{data.data}</Text>
 
@@ -284,7 +295,7 @@ class BarcodeScannerApp extends React.Component {
         transparent={true}
         visible={this.state.resultModalVisible}
         onRequestClose={() => {
-          this.closeModal();
+          this.closeResultsModal();
         }}
       >
         <View style={styles.modalContainer}>
@@ -293,7 +304,7 @@ class BarcodeScannerApp extends React.Component {
               <View style={{alignItems: 'flex-end'}}>
                 <TouchableOpacity
                   onPress={() => {
-                      this.closeModal();
+                      this.closeResultsModal();
                     }}
                 >
                   <Icon name="close" />
@@ -323,7 +334,7 @@ class BarcodeScannerApp extends React.Component {
                   onPress={() => {
                       Clipboard.setString(this.state.parsingResult.toString());
                       Toast.show(strings.copied);
-                      this.closeModal();
+                      this.closeResultsModal();
                       this.logEvent('copy_to_clipboard');
                     }}
                 >
@@ -337,7 +348,7 @@ class BarcodeScannerApp extends React.Component {
                       } : {
                         message: this.state.parsingResult
                       });
-                      this.closeModal();
+                      this.closeResultsModal();
                       this.logEvent('share');
                     }}
                   style={styles.actionButton}
@@ -354,7 +365,6 @@ class BarcodeScannerApp extends React.Component {
   }
 
   _renderHistoryModal() {
-
     const toRender = ds.cloneWithRows(this.state.history);
 
     return (
@@ -436,7 +446,7 @@ class BarcodeScannerApp extends React.Component {
   }
 
   render() {
-    const TopComponent = this.state.isActiveState ? Camera : View;
+    const TopComponent = this.state.isActiveState && !this.state.historyModalVisible ? Camera : View;
 
     return (
       <View style={{flex: 1}}>
