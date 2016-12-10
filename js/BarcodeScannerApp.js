@@ -446,7 +446,7 @@ class BarcodeScannerApp extends React.Component {
   }
 
   render() {
-    const TopComponent = this.state.isActiveState && !this.state.historyModalVisible ? Camera : View;
+    const TopComponent = this.state.isActiveState ? Camera : View;
 
     return (
       <View style={{flex: 1}}>
